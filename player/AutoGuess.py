@@ -1,4 +1,6 @@
+
 outputs: list = []
+
 def kLengthRec(set, prefix, n, k):
     global outputs
     

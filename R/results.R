@@ -11,4 +11,7 @@ summary <- results |>
 
 wins <- results |>
   dplyr::filter(score > 0)
-hist(as.numeric(wins$score))
+
+hist(as.numeric(wins$score), breaks = length(unique(wins$score)))
+
+mean(wins$score)

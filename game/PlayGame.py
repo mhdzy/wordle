@@ -15,7 +15,7 @@ class PlayGame:
     def __init__(self) -> None:
         self.game = wg.WordleGame()
         self.choices = self.game.choices
-        self.weighted_choices: list = [self.game.choices]
+        self.remainder: list = [self.game.choices]
         # can compare these against self.game.guesses and self.game.feedbacks
         self.guesses: list = []
         self.feedbacks: list = []
@@ -37,21 +37,20 @@ class PlayGame:
         guessed, a new word is chosen.
         :return list: The results of a guess attempt, usually the guess feedback.
         """
-        if not len(self.weighted_choices[-1]):
+        if not len(self.remainder[-1]):
             raise Exception("game ran out of words to pick")
-        
+
         def generate_guess(pool):
-            return pool[random.randint(0, len(pool)-1)]
+            return pool[random.randint(0, len(pool) - 1)]
 
         while True:
-          guess = generate_guess(self.weighted_choices[-1])
-          if guess not in self.guesses:
-              break
-          else:
-              print(f"duplicate guess generated: {guess}")
-        
-        self.guesses.append(guess)
-        return self.guess(self.guesses[-1])
+            guess = generate_guess(self.remainder[-1])
+            if guess not in self.guesses:
+                break
+            else:
+                print(f"duplicate guess generated: {guess}")
+
+        return self.guess(guess)
 
     def guess(self, word: str = "") -> list:
         """
@@ -61,33 +60,49 @@ class PlayGame:
         :param word: A guess string.
         :return list: The feedback for the guess.
         """
+        import pdb
+
+        #pdb.set_trace()
+        self.guesses.append(word)
         self.feedbacks.append(self.game.guess(word))
-        self.weighted_choices.append(self.filter(self.feedbacks[-1]))
-        
-        # remove the guess from potential future guess pools for efficiency
-        if word in self.weighted_choices[-1]:
-          self.weighted_choices[-1].remove(word)
+        self.remainder.append(
+            self.filter(self.feedbacks[-1], self.remainder[-1])
+        )
+
+        # remove the guess from potential future guess pools to avoid duplicates
+        if word in self.remainder[-1]:
+            self.remainder[-1].remove(word)
 
         return self.feedbacks[-1]
 
-    def filter(self, fb: list = []) -> list:
+    def filter(self, fb: list = [], words: list = [], util: bool = False) -> list:
         """
-        Calculates a feedback table to consider the relationship of the
-        feedback letters. This table is used to filter the remaining list of
-        valid guess choices and return them.
+        Trims down the list of remaining valid guesses given a particular
+        feedback. Useful for computing arbitrary leftover words for any given
+        feedback and word list.
         :param fb: Feedback from a guess attempt.
         :return list: A list of remaining valid guesses.
         """
-        self.tables.append(self.fb_table(fb))
-        self.regexes.append(self.fb_regex(fb, self.tables[-1]))
+        # this flag avoids appending parsed input results to object variables
+        # this behavior is useful when legitimately guessing, but not when
+        # computing possible outcomes for all remaining valid guesses
+        if not util:
+            self.tables.append(self.fb_table(fb))
+            self.regexes.append(self.fb_regex(fb, self.tables[-1]))
+
         leftover = list(
-            map(
-                lambda r, w: True if len(re.findall(r, w)) else False,
-                [self.regexes[-1]] * len(self.weighted_choices[-1]),
-                self.weighted_choices[-1],
+            compress(
+                words,
+                list(
+                    map(
+                        lambda r, w: True if len(re.findall(r, w)) else False,
+                        [self.regexes[-1]] * len(words),
+                        words,
+                    )
+                ),
             )
         )
-        return list(compress(self.weighted_choices[-1], leftover))
+        return leftover
 
     def fb_table(self, fb: list = []) -> dict:
         """
@@ -159,6 +174,63 @@ class PlayGame:
                         pos_regex[i] = pos_regex[i].replace(tmp["letter"], "")
 
         return "[" + "]+[".join(pos_regex.values()) + "]+"
+
+    def fb_combos(self) -> list:
+        """
+        :return list: A list of valid feedback combinations.
+        """
+        outputs: list = []
+
+        def kLengthRec(set, prefix, n, k):
+            nonlocal outputs
+
+            if k == 0:
+                outputs.append(prefix)
+                return
+
+            for i in range(n):
+                newPrefix = prefix + set[i]
+                kLengthRec(set, newPrefix, n, k - 1)
+
+        def kLength(set, k):
+            kLengthRec(set, "", len(set), k)
+
+        kLength(["0", "1", "2"], self.game.word_length)
+
+        return outputs
+
+    def fb_stitch(self, fb: str, word: str) -> list:
+        """
+        :param fb: A string representing N digits of feedback.
+        :param word: A word string to stitch together with the feedback.
+        """
+        if not len(fb) or not len(word) or len(fb) != len(word):
+            raise Exception("no feedback or word string given")
+
+        return [(v, int(k)) for (k, v) in zip(fb, word)]
+
+    def fb_simulate(self) -> dict:
+        # for word w in remaining words:
+        #   get all remaining words
+        #   get all types of feedback
+        #   for tmp_fb in feedbacks:
+        #     fb_stitch(fb, words)
+        #     filter(fb, words, util = True)
+        wordcounts: dict = {}
+        for w in self.remainder[-1]:
+            wordcounts[w] = []
+            for f in self.fb_combos():
+                wordcounts[w].append(
+                    {
+                        "word": w,
+                        "feedback": f,
+                        "result": self.filter(
+                            self.fb_stitch(f, w), self.remainder[-1], util=True
+                        ),
+                    }
+                )
+
+        return wordcounts
 
     def pos_let(self, mode: int, values: list = []) -> list:
         """
