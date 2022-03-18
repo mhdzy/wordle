@@ -1,4 +1,5 @@
 from itertools import compress
+import random
 import re
 import game.WordleGame as wg
 
@@ -31,13 +32,26 @@ class PlayGame:
 
     def autoguess(self) -> list:
         """
-        Takes an automated guess attempt for the game. Currently chooses the
-        first word in the guess stack.
+        Takes an automated guess attempt for the game. Currently chooses a
+        random word from the guess stack. While the chosen word has been
+        guessed, a new word is chosen.
         :return list: The results of a guess attempt, usually the guess feedback.
         """
-        if not len(self.weighted_choices):
-            raise NotImplementedError("game ran out of words to pick")
-        return self.guess(self.weighted_choices[-1][0])
+        if not len(self.weighted_choices[-1]):
+            raise Exception("game ran out of words to pick")
+        
+        def generate_guess(pool):
+            return pool[random.randint(0, len(pool)-1)]
+
+        while True:
+          guess = generate_guess(self.weighted_choices[-1])
+          if guess not in self.guesses:
+              break
+          else:
+              print(f"duplicate guess generated: {guess}")
+        
+        self.guesses.append(guess)
+        return self.guess(self.guesses[-1])
 
     def guess(self, word: str = "") -> list:
         """
@@ -49,6 +63,10 @@ class PlayGame:
         """
         self.feedbacks.append(self.game.guess(word))
         self.weighted_choices.append(self.filter(self.feedbacks[-1]))
+        
+        # remove the guess from potential future guess pools for efficiency
+        if word in self.weighted_choices[-1]:
+          self.weighted_choices[-1].remove(word)
 
         return self.feedbacks[-1]
 
@@ -82,8 +100,8 @@ class PlayGame:
             table["pos"].append(pos)
             table["fb"].append(item[1])
             table["letter"].append(item[0])
-            table["count"].append(table["letter"].count(item))
-            table["duplicate"].append(True if table["count"][-1] > 0 else False)
+            table["count"].append(table["letter"].count(item[0]))
+            table["duplicate"].append(True if table["count"][-1] > 1 else False)
             # todo: implement 'has_green_dup'
             # todo: implement 'has_yellow_dup'
             # tood: implement 'has_black_dup'
