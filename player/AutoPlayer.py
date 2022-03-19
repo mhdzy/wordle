@@ -4,7 +4,7 @@ import game.PlayGame as pg
 class AutoPlayer:
 
     def __init__(self) -> None:
-        self.MAX_GAMES = 1200
+        self.MAX_GAMES = 10
         self.LOG_RATE = 0.10
         self.games: list = []
         self.scores: list = []
@@ -23,8 +23,8 @@ class AutoPlayer:
 
             while not game.game.win:
                 try:
-                    #import pdb; pdb.set_trace()
                     fb.append(game.autoguess())
+                    #game.fb_parse()
                 except Exception as e:
                     # when the candidate list is empty, an err is thrown
                     game.game.win = True

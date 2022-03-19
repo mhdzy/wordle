@@ -60,14 +60,10 @@ class PlayGame:
         :param word: A guess string.
         :return list: The feedback for the guess.
         """
-        import pdb
 
-        #pdb.set_trace()
         self.guesses.append(word)
         self.feedbacks.append(self.game.guess(word))
-        self.remainder.append(
-            self.filter(self.feedbacks[-1], self.remainder[-1])
-        )
+        self.remainder.append(self.filter(self.feedbacks[-1], self.remainder[-1]))
 
         # remove the guess from potential future guess pools to avoid duplicates
         if word in self.remainder[-1]:
@@ -231,6 +227,19 @@ class PlayGame:
                 )
 
         return wordcounts
+
+    def fb_parse(self):
+        from statistics import mean
+
+        pct = {}
+        sim = self.fb_simulate()
+        for k in sim.keys():
+            pct[k] = {}
+            for f in range(0, len(sim[k])):
+                pct[k][f] = len(sim[k][f]["result"])
+            mean(pct[k].values())
+
+        return pct
 
     def pos_let(self, mode: int, values: list = []) -> list:
         """
