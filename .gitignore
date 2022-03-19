@@ -1,3 +1,9 @@
+# user-generated data
+data/*.csv
+
+# IDE-generated data
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

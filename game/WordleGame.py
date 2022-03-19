@@ -21,8 +21,9 @@ class WordleGame:
         self.feedbacks: list = []  # list of lists
 
         with lw.LoadWords() as words:
-            self.choices = words.answers
-            self.answer = self.choices[random.randrange(0, len(self.choices))]
+            self.choices = words.answers + words.words
+            self.answers = words.answers
+            self.answer = self.answers[random.randrange(0, len(self.answers))]
 
             return None
 
