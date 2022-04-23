@@ -91,6 +91,9 @@ class PlayGame:
         if not util:
             self.tables.append(self.fb_table(fb))
             self.regexes.append(self.fb_regex(fb, self.tables[-1]))
+            regex = self.regexes[-1]
+        else:
+            regex = self.fb_regex(fb, self.fb_table(fb))
 
         leftover = list(
             compress(
@@ -98,7 +101,7 @@ class PlayGame:
                 list(
                     map(
                         lambda r, w: True if len(re.findall(r, w)) else False,
-                        [self.regexes[-1]] * len(words),
+                        [regex] * len(words),
                         words,
                     )
                 ),
@@ -114,7 +117,7 @@ class PlayGame:
         table = {"pos": [], "fb": [], "letter": [], "count": [], "duplicate": []}
 
         for pos, item in enumerate(fb):
-            table["pos"].append(pos)
+            table["pos"].append(pos % self.game.word_length)
             table["fb"].append(item[1])
             table["letter"].append(item[0])
             table["count"].append(table["letter"].count(item[0]))
@@ -134,7 +137,7 @@ class PlayGame:
         """
 
         alphabet = "abcdefghijklmnopqrstuvwxyz"
-        pos_regex = {k: alphabet for k in range(0, 5)}
+        pos_regex = {k: alphabet for k in range(0, self.game.word_length)}
 
         fb_let = [k for (k, _) in fb]
         fb_let_struct = {
@@ -144,6 +147,9 @@ class PlayGame:
         }
 
         for pos, item in enumerate(fb):
+            # lets us pass over the regex string multiple times
+            pos = pos % self.game.word_length
+
             tmp = {k: tbl[k][pos] for k in tbl.keys()}
             if tmp["fb"] == 2:
                 pos_regex[pos] = tmp["letter"]
@@ -172,18 +178,18 @@ class PlayGame:
                             pos_regex[pos2] = pos_regex[pos2].replace(tmp["letter"], "")
                 else:
                     # if not duplicated, remove from all positions
-                    for i, _ in enumerate(fb):
+                    for i in range(0, self.game.word_length):
                         pos_regex[i] = pos_regex[i].replace(tmp["letter"], "")
 
         return "[" + "]+[".join(pos_regex.values()) + "]+"
 
-    def fb_combos(self) -> list:
+    def fb_combos(self, alphabet=["0", "1", "2"]) -> list:
         """
         :return list: A list of valid feedback combinations.
         """
         outputs: list = []
 
-        def kLengthRec(set, prefix, n, k):
+        def kLength(set, prefix, n, k):
             nonlocal outputs
 
             if k == 0:
@@ -192,12 +198,9 @@ class PlayGame:
 
             for i in range(n):
                 newPrefix = prefix + set[i]
-                kLengthRec(set, newPrefix, n, k - 1)
+                kLength(set, newPrefix, n, k - 1)
 
-        def kLength(set, k):
-            kLengthRec(set, "", len(set), k)
-
-        kLength(["0", "1", "2"], self.game.word_length)
+        kLength(alphabet, "", len(alphabet), self.game.word_length)
 
         return outputs
 
@@ -219,33 +222,32 @@ class PlayGame:
         #     fb_stitch(fb, words)
         #     filter(fb, words, util = True)
         wordcounts: dict = {}
-        for w in self.remainder[-1]:
-            wordcounts[w] = []
+        for pos, item in enumerate(self.remainder[-1]):
+            print(
+                "parsing word #"
+                + str(pos)
+                + "/"
+                + str(len(self.remainder[-1]))
+                + " ("
+                + item
+                + ")"
+            )
+            wordcounts[item] = []
             for f in self.fb_combos():
-                wordcounts[w].append(
-                    {
-                        "word": w,
-                        "feedback": f,
-                        "result": self.filter(
-                            self.fb_stitch(f, w), self.remainder[-1], util=True
+                wordcounts[item].append(
+                    [
+                        f,
+                        len(
+                            self.filter(
+                                self.fb_stitch(f, item),
+                                self.remainder[-1],
+                                util = True,  # do not modify game variables
+                            )
                         ),
-                    }
+                    ]
                 )
 
         return wordcounts
-
-    def fb_parse(self):
-        from statistics import mean
-
-        pct = {}
-        sim = self.fb_simulate()
-        for k in sim.keys():
-            pct[k] = {}
-            for f in range(0, len(sim[k])):
-                pct[k][f] = len(sim[k][f]["result"])
-            mean(pct[k].values())
-
-        return pct
 
     def pos_let(self, mode: int, values: list = []) -> list:
         """
