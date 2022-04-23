@@ -1,19 +1,9 @@
+import game.PlayGame as pg
 
-outputs: list = []
+game = pg.PlayGame()
 
-def kLengthRec(set, prefix, n, k):
-    global outputs
-    
-    if (k == 0):
-        outputs.append(prefix)
-        return
- 
-    for i in range(n):
-        newPrefix = prefix + set[i]
-        kLengthRec(set, newPrefix, n, k - 1)
+possible_feedbacks = game.fb_combos()
 
-def kLength(set, k):
-    kLengthRec(set, "", len(set), k)
-
-# stores results in 'outputs'
-kLength(['0', '1', '2'], k = 5)
+while not game.game.win:
+    game.autoguess()
+game
