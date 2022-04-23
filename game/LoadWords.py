@@ -5,9 +5,12 @@ class LoadWords():
   def __init__(self) -> None:
     if not len(self.words):
       self.words = self.fread('resources/words.txt')
+      self.words.sort()
     
     if not len(self.answers):
       self.answers = self.fread('resources/answers.txt')
+      self.answers.sort()
+      
     return None
   
   def __enter__(self):
