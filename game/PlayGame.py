@@ -63,7 +63,13 @@ class PlayGame:
 
         self.guesses.append(word)
         self.feedbacks.append(self.game.guess(word))
-        self.remainder.append(self.filter(self.feedbacks[-1], self.remainder[-1]))
+
+        # iteratively trim the list
+        local_remainder = self.remainder[-1]
+        for f in self.feedbacks:
+            local_remainder = self.filter(f, local_remainder)
+
+        self.remainder.append(local_remainder)
 
         # remove the guess from potential future guess pools to avoid duplicates
         if word in self.remainder[-1]:
