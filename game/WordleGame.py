@@ -1,4 +1,5 @@
 from itertools import compress
+from datetime import date
 import random
 
 import game.LoadWords as lw
@@ -31,8 +32,7 @@ class WordleGame:
         return f"WordleGame(win: {self.win}, turns: {self.turn}, answer: {self.answer}, guesses: {self.guesses}, feedback: {self.feedbacks})"
 
     def __repr__(self) -> str:
-        fmt_str = "\n"
-        fmt_str += " === Wordle Game === \n"
+        fmt_str = "\n === Wordle Game === \n"
 
         fmt_str += (
             " [ ] game won\n"
@@ -50,6 +50,8 @@ class WordleGame:
             fmt_str += "\n"
 
         fmt_str += " === === === === === \n"
+
+        fmt_str += self.show_feedback()
 
         return fmt_str
 
@@ -100,7 +102,7 @@ class WordleGame:
 
     def calculate_feedback(self, answer: str = "", word: str = "") -> dict:
         """
-        Given a word, calculate the
+        Given a word, calculate the feedback.
         :param word: A 5 letter word guess to compare against the game answer.
         """
         if len(word) != 5:
@@ -144,3 +146,24 @@ class WordleGame:
         feedback = self.apply_feedback(feedback, fb_black, 0)
 
         return feedback
+
+    def show_feedback(self, color: bool = True):
+        """
+        Shows feedback in 'color' mode using black/yellow/green emoji squares.
+        :param color: A bool, when True displays emoji squares, when False uses integers.
+        """
+
+        colors = {0: "⬛", 1: "🟨", 2: "🟩"}
+
+        today = date.today().strftime("%-m/%d")
+        fmt_str = f"\n Wordle 9000 {today}\n"
+
+        for f in self.feedbacks:
+            numeric_repr = [el[1] for el in f]
+            emoji_repr = [colors[a] for a in numeric_repr]
+            if color:
+                fmt_str += "\n " + "".join(emoji_repr)
+            else:
+                fmt_str += "\n " + "".join([str(x) for x in numeric_repr])
+
+        return fmt_str

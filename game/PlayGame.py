@@ -83,6 +83,8 @@ class PlayGame:
         feedback. Useful for computing arbitrary leftover words for any given
         feedback and word list.
         :param fb: Feedback from a guess attempt.
+        :param words: A list of words to filter on.
+        :param util: A flag to append regex filter & table to class variables.
         :return list: A list of remaining valid guesses.
         """
         # this flag avoids appending parsed input results to object variables
