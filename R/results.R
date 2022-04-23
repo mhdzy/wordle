@@ -1,7 +1,7 @@
 library(dplyr)
 library(readr)
 
-results <- "data/test_10k.csv" |>
+results <- "data/test.csv" |>
   readr::read_csv(col_names = "score")
 
 summary <- results |>
