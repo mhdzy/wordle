@@ -4,10 +4,7 @@ import numpy as np
 import player.AutoPlayer as ap
 
 if __name__ == "__main__":
-    player = ap.AutoPlayer(**{
-      'max_games': 20,
-      'log_rate': 0.05
-    })
+    player = ap.AutoPlayer(**{'max_games': 2, 'log_rate': 0.01})
     guesses = player.autoplay()
 
     # summarised view
@@ -15,7 +12,7 @@ if __name__ == "__main__":
 
     # save out raw list
     np.savetxt(
-        fname="data/test.csv",
+        fname="data/test-new-name.csv",
         X=guesses,
         delimiter=",",
     )
