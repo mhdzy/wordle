@@ -1,5 +1,9 @@
 # user-generated data
+data/*.json
 data/*.csv
+
+.DS_Store
+Rplots.pdf
 
 # IDE-generated data
 .vscode/
