@@ -1,4 +1,5 @@
 from itertools import compress
+import math
 import random
 import re
 import game.WordleGame as wg
@@ -64,14 +65,6 @@ class PlayGame:
         self.guesses.append(word)
         self.feedbacks.append(self.game.guess(word))
         self.remainder.append(self.filter(self.feedbacks[-1], self.remainder[-1]))
-
-        if False:
-          # iteratively trim the list
-          local_remainder = self.remainder[-1]
-          for f in self.feedbacks:
-              local_remainder = self.filter(f, local_remainder)
-
-          self.remainder.append(local_remainder)
 
         # remove the guess from potential future guess pools to avoid duplicates
         if word in self.remainder[-1]:
@@ -190,7 +183,7 @@ class PlayGame:
         # core regex unnamed capture group, 0 or 1 times for the elements & set
         # use non-greedy +? quantifier to match each letter (and group) strictly once
         main = "([" + "][".join(pos_regex.values()) + "])+?"
-        
+
         # lookahead group to verify presence of yellow letters
         lookahead_pre = "(?=\w*["
         lookahead_post = "]+\w*)"
@@ -237,7 +230,7 @@ class PlayGame:
 
         return [(v, int(k)) for (k, v) in zip(fb, word)]
 
-    def fb_simulate(self) -> dict:
+    def fb_simulate(self, quartile: int = 0) -> dict:
         # for word w in remaining words:
         #   get all remaining words
         #   get all types of feedback
@@ -245,12 +238,18 @@ class PlayGame:
         #     fb_stitch(fb, words)
         #     filter(fb, words, util = True)
         wordcounts: dict = {}
-        for pos, item in enumerate(self.remainder[-1]):
+
+        enumerable = self.remainder[-1]
+        if quartile:
+            quartile_offset = math.ceil(len(self.remainder[-1])/4)
+            enumerable = self.remainder[-1][((quartile - 1) * quartile_offset):(quartile * quartile_offset)]
+
+        for pos, item in enumerate(enumerable):
             print(
                 "parsing word #"
                 + str(pos)
                 + "/"
-                + str(len(self.remainder[-1]))
+                + str(len(enumerable))
                 + " ("
                 + item
                 + ")"
