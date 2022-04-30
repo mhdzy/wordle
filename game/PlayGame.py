@@ -63,13 +63,15 @@ class PlayGame:
 
         self.guesses.append(word)
         self.feedbacks.append(self.game.guess(word))
+        self.remainder.append(self.filter(self.feedbacks[-1], self.remainder[-1]))
 
-        # iteratively trim the list
-        local_remainder = self.remainder[-1]
-        for f in self.feedbacks:
-            local_remainder = self.filter(f, local_remainder)
+        if False:
+          # iteratively trim the list
+          local_remainder = self.remainder[-1]
+          for f in self.feedbacks:
+              local_remainder = self.filter(f, local_remainder)
 
-        self.remainder.append(local_remainder)
+          self.remainder.append(local_remainder)
 
         # remove the guess from potential future guess pools to avoid duplicates
         if word in self.remainder[-1]:
@@ -153,6 +155,8 @@ class PlayGame:
             pos = pos % self.game.word_length
 
             tmp = {k: tbl[k][pos] for k in tbl.keys()}
+
+            # this should be cleaned up...
             if tmp["fb"] == 2:
                 pos_regex[pos] = tmp["letter"]
             elif tmp["fb"] == 1:
@@ -183,7 +187,24 @@ class PlayGame:
                     for i in range(0, self.game.word_length):
                         pos_regex[i] = pos_regex[i].replace(tmp["letter"], "")
 
-        return "[" + "]+[".join(pos_regex.values()) + "]+"
+        # core regex unnamed capture group, 0 or 1 times for the elements & set
+        # use non-greedy +? quantifier to match each letter (and group) strictly once
+        main = "([" + "][".join(pos_regex.values()) + "])+?"
+        
+        # lookahead group to verify presence of yellow letters
+        lookahead_pre = "(?=\w*["
+        lookahead_post = "]+\w*)"
+        lookahead_core = fb_let_struct["y"] if (len(fb_let_struct["y"])) else ["\w"]
+        lookahead = list(
+            map(
+                lambda x: "{}{}{}".format(lookahead_pre, x, lookahead_post),
+                lookahead_core,
+            )
+        )
+
+        regex = "^" + "".join(lookahead) + main + "$"
+
+        return regex
 
     def fb_combos(self, alphabet=["0", "1", "2"]) -> list:
         """
@@ -243,7 +264,7 @@ class PlayGame:
                             self.filter(
                                 self.fb_stitch(f, item),
                                 self.remainder[-1],
-                                util = True,  # do not modify game variables
+                                util=True,  # do not modify game variables
                             )
                         ),
                     ]
