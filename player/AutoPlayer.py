@@ -46,6 +46,6 @@ class AutoPlayer:
             else:
                 self.scores.append(len(game.guesses))
 
-            self.games.append(game)
+            #self.games.append(game)
 
         return self.scores
