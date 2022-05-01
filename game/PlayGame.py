@@ -345,8 +345,8 @@ class PlayGame:
 
         enumerable = self.remainder[-1]
         if partition:
-            offset = math.ceil(len(self.remainder[-1])/base)
-            enumerable = self.remainder[-1][((partition - 1) * offset):(partition * offset)]
+            offset = math.ceil(len(enumerable) / base)
+            enumerable = enumerable[((partition - 1) * offset) : (partition * offset)]
 
         for pos, item in enumerate(enumerable):
             if verbose:
