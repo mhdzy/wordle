@@ -1,5 +1,7 @@
-from itertools import compress
-from datetime import date
+#!/usr/bin/env python3
+
+import itertools
+import datetime
 import random
 
 import game.LoadWords as lw
@@ -125,10 +127,10 @@ class WordleGame:
 
         # grab all matches as 'green'
         fb_green = [answer[k] == word[k] for k in range(len(answer))]
-        green_idx = list(compress(list(range(0, len(answer))), fb_green))
+        green_idx = list(itertools.compress(list(range(0, len(answer))), fb_green))
 
         # update letterpool by removing green letters
-        lp = list(compress(lp, [not i for i in fb_green]))
+        lp = list(itertools.compress(lp, [not i for i in fb_green]))
 
         # iterate over leftover words to determine
         for i in enumerate(word):

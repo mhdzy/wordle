@@ -1,7 +1,11 @@
-from itertools import compress
+#!/usr/bin/env python3
+
+import itertools
+import collections
 import math
 import random
 import re
+
 import game.WordleGame as wg
 
 
@@ -93,7 +97,7 @@ class PlayGame:
             regex = self.fb_regex(fb, self.fb_table(fb))
 
         leftover = list(
-            compress(
+            itertools.compress(
                 words,
                 list(
                     map(
@@ -163,7 +167,7 @@ class PlayGame:
                         # elif has green duplicate, remove from all but green duplicate positions
                         # get duplicate green indices of this letter
                         ignore_idx = list(
-                            compress(
+                            itertools.compress(
                                 list(range(0, len(fb))),
                                 [x == tmp["letter"] for x in fb_let],
                             )
@@ -230,7 +234,9 @@ class PlayGame:
 
         return [(v, int(k)) for (k, v) in zip(fb, word)]
 
-    def fb_simulate(self, partition: int = 0, base: int = 10) -> dict:
+    def fb_simulate(
+        self, partition: int = 0, base: int = 10, verbose: bool = True
+    ) -> dict:
         # for word w in remaining words:
         #   get all remaining words
         #   get all types of feedback
@@ -245,15 +251,16 @@ class PlayGame:
             enumerable = self.remainder[-1][((partition - 1) * offset):(partition * offset)]
 
         for pos, item in enumerate(enumerable):
-            print(
-                "parsing word #"
-                + str(pos)
-                + "/"
-                + str(len(enumerable))
-                + " ("
-                + item
-                + ")"
-            )
+            if verbose:
+                print(
+                    "parsing word #"
+                    + str(pos)
+                    + "/"
+                    + str(len(enumerable))
+                    + " ("
+                    + item
+                    + ")"
+                )
             wordcounts[item] = []
             for f in self.fb_combos():
                 wordcounts[item].append(
@@ -278,7 +285,9 @@ class PlayGame:
         :param values: a list of tuples representing (letter, fb_int_code)
         """
         return list(
-            compress([x[0] for x in values], list(map(lambda x: x[1] == mode, values)))
+            itertools.compress(
+                [x[0] for x in values], list(map(lambda x: x[1] == mode, values))
+            )
         )
 
     def pos_idx(self, mode: int, values: list = []) -> list:
@@ -288,7 +297,7 @@ class PlayGame:
         :param mode: an integer mode representing 'g' (2), 'y' (1), or 'b' (0)
         :param values: a list of tuples representing (letter, fb_int_code)"""
         return list(
-            compress(
+            itertools.compress(
                 list(range(0, len(values))),
                 list(map(lambda x: x == mode, values)),
             )

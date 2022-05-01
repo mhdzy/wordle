@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 class LoadWords():
   words: list = []
   answers: list = []
