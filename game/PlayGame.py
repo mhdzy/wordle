@@ -3,6 +3,7 @@
 import itertools
 import collections
 import math
+import multiprocessing
 import random
 import re
 
@@ -27,6 +28,10 @@ class PlayGame:
         self.tables: list = []
         self.regexes: list = []
 
+        # autoguess multithreading support
+        self.max_threads: int = int(multiprocessing.cpu_count() / 2)
+        self.max_remainder: int = 2000
+
         return None
 
     def __str__(self) -> str:
@@ -35,27 +40,93 @@ class PlayGame:
     def __repr__(self) -> str:
         return self.game.__repr__()
 
-    def autoguess(self) -> list:
+    def generateguesses(self) -> str:
         """
-        Takes an automated guess attempt for the game. Currently chooses a
-        random word from the guess stack. While the chosen word has been
-        guessed, a new word is chosen.
-        :return list: The results of a guess attempt, usually the guess feedback.
+        Generates a list of all possible guesses and their associated 'scores',
+        as given by E[I(guess)] = sum {fb} (p(fb) * log(1/p(fb))).
         """
-        if not len(self.remainder[-1]):
-            raise Exception("game ran out of words to pick")
 
-        def generate_guess(pool):
-            return pool[random.randint(0, len(pool) - 1)]
+        ranges = [i + 1 for i in range(self.max_threads)]
 
-        while True:
-            guess = generate_guess(self.remainder[-1])
-            if guess not in self.guesses:
-                break
-            else:
-                print(f"duplicate guess generated: {guess}")
+        pool = multiprocessing.Pool(processes=self.max_threads)
+        results = pool.map(self.fb_simulate, ranges)
 
-        return self.guess(guess)
+        sim_list: list = {k: v for x in results for k, v in x.items()}
+        sim_dict: dict = {s: {k[0]: k[1] for k in sim_list[s]} for s in sim_list}
+
+        # flatten the dict a level
+        sim_dict: list = {k: list(v.values()) for k, v in sim_dict.items()}
+
+        # calculate p(x)
+        flat_prob = {k: [x / len(sim_dict) for x in v] for k, v in sim_dict.items()}
+
+        # calculate log(1/p(x))
+        def log2inv(x: int = 0, base: float = math.e) -> float:
+            return 0 if not x else math.log(1 / x, base)
+
+        flat_log = {k: [log2inv(x, 2) for x in v] for k, v in flat_prob.items()}
+
+        # multiply p(x) * log(1/p(x))
+        exp_values = {
+            k: [round(x * y, 2) for x, y in zip(flat_prob[k], flat_log[k])]
+            for k in flat_prob.keys() & flat_log.keys()
+        }
+
+        # sum list for each word (alphabetical)
+        sum_exp_values = {k: sum(v) for k, v in exp_values.items()}
+
+        # sort list (reverse order, use [-1] key for highest score)
+        sort_exp_values = {
+            k: v for k, v in sorted(sum_exp_values.items(), key=lambda x: x[1])
+        }
+
+        # order the sorted expected value dict with largest at index 0
+        # sort_exp_values_tuples = sorted(sum_exp_values.items(), key=lambda x: x[1])
+        # sort_exp_values_tuples.reverse()
+        # sort_exp_values = dict(collections.OrderedDict(sort_exp_values_tuples))
+        # read_exp_values = {k: str(round(v, 2)) for k, v in sort_exp_values.items()}
+
+        def duplicate(word: str = ""):
+            return True if len(set(word)) == len(word) else False
+
+        # find words with duplicated letters
+        guess_words = list(sort_exp_values.keys())
+        word_index = [
+            pos for pos, item in enumerate(list(map(duplicate, guess_words))) if item
+        ]
+
+        # these are words without duplicate letters in them
+        nonduplicated_exp_values = {
+            k: v
+            for k, v in sort_exp_values.items()
+            if k in [guess_words[x] for x in word_index]
+        }
+
+        # if there aren't any 'nonduplicated' words left to use, we need to
+        # pick from the duplicate bin
+        guesslist = (
+            nonduplicated_exp_values
+            if len(nonduplicated_exp_values)
+            else sort_exp_values
+        )
+
+        # return all words in raw form
+        return guesslist
+
+    def generateguess(self) -> str:
+        """
+        Generates a guess by simulating feedback results for the current game
+        state. Chooses the word with the highest likelihood of maximally
+        reducing the remaining word list 'score'.
+        """
+        # return the word with the highest score
+        return list(self.generateguesses().keys())[-1]
+
+    def randomguess(self) -> str:
+        """
+        Generates a random guess, chosen from the list of remaining words.
+        """
+        return self.remainder[-1][random.randint(0, len(self.remainder[-1]) - 1)]
 
     def guess(self, word: str = "") -> list:
         """
@@ -75,6 +146,33 @@ class PlayGame:
             self.remainder[-1].remove(word)
 
         return self.feedbacks[-1]
+
+    def autoguess(self) -> list:
+        """
+        Takes an automated guess attempt for the game. Currently chooses a
+        random word from the guess stack. While the chosen word has been
+        guessed, a new word is chosen.
+        :return list: The results of a guess attempt, usually the guess feedback.
+        """
+        if not len(self.remainder[-1]):
+            raise Exception("game ran out of words to pick")
+
+        print(f"{len(self.remainder[-1])}")
+
+        # guess randomly on the first turn; it takes > 60 mins to run
+        guess = (
+            "tares" # chosen from a list of precomputed words with the 'highest' score
+            # self.randomguess()
+            if not self.game.turn or len(self.remainder[-1]) > self.max_remainder
+            else self.generateguess()
+        )
+
+        return self.guess(guess)
+
+    def autoplay(self):
+        while not self.game.lose and not self.game.win:
+            self.autoguess()
+        return self
 
     def filter(self, fb: list = [], words: list = [], util: bool = False) -> list:
         """
