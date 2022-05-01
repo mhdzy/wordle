@@ -25,21 +25,10 @@ class AutoPlayer:
             while not game.game.win:
                 try:
                     fb.append(game.autoguess())
-                    if False:
-                      # this code calculates the best next guess
-                      potential_guesses = game.fb_simulate()
-                      average_remainders = [
-                          mean(potential_guesses[x].values())
-                          for x in potential_guesses.keys()
-                      ]
-                      next_guess = list(potential_guesses)[average_remainders.index(min(average_remainders))]
-                      fb.append(game.guess(next_guess))
                 except Exception as e:
                     # when the candidate list is empty, an err is thrown
                     game.game.win = True
                     failure = True
-
-            game
 
             if failure:
                 self.scores.append(-1)
