@@ -1,18 +1,27 @@
-from collections import Counter
-import numpy as np
+import argparse
+import sys
 
 import player.AutoPlayer as ap
+import player.DailyPlayer as dp
+
+
+def main(argv):
+    parser = argparse.ArgumentParser(
+        description="daily wordle driver parser",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    parser.add_argument('-a', '--answer', help="Wordle game answer")
+    args = parser.parse_args()
+    config = vars(args)
+    
+    game = dp.DailyPlayer()
+    game.set(config.get('answer')).play()
+
+    print(repr(game.game))
+
+    return game.game
+
 
 if __name__ == "__main__":
-    player = ap.AutoPlayer(**{'max_games': 2, 'log_rate': 0.01})
-    guesses = player.autoplay()
-
-    # summarised view
-    counted = Counter(guesses)
-
-    # save out raw list
-    np.savetxt(
-        fname="data/test-new-name.csv",
-        X=guesses,
-        delimiter=",",
-    )
+    main(sys.argv[1:])
