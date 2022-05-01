@@ -230,7 +230,7 @@ class PlayGame:
 
         return [(v, int(k)) for (k, v) in zip(fb, word)]
 
-    def fb_simulate(self, quartile: int = 0) -> dict:
+    def fb_simulate(self, partition: int = 0, base: int = 10) -> dict:
         # for word w in remaining words:
         #   get all remaining words
         #   get all types of feedback
@@ -240,9 +240,9 @@ class PlayGame:
         wordcounts: dict = {}
 
         enumerable = self.remainder[-1]
-        if quartile:
-            quartile_offset = math.ceil(len(self.remainder[-1])/4)
-            enumerable = self.remainder[-1][((quartile - 1) * quartile_offset):(quartile * quartile_offset)]
+        if partition:
+            offset = math.ceil(len(self.remainder[-1])/base)
+            enumerable = self.remainder[-1][((partition - 1) * offset):(partition * offset)]
 
         for pos, item in enumerate(enumerable):
             print(
