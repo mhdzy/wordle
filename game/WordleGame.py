@@ -18,6 +18,7 @@ class WordleGame:
 
     def __init__(self) -> None:
         self.win: bool = False
+        self.lose: bool = False
         self.turn: int = 0
         self.answer: str = ""
         self.guesses: list = []
@@ -71,7 +72,7 @@ class WordleGame:
         if self.win:
             raise RuntimeError(f"The game has been won in {len(self.guesses)} guesses.")
         elif self.turn > 5:
-            # raise RuntimeError(f"The maximum number of guesses has been played.")
+            raise RuntimeError(f"The maximum number of guesses has been played.")
             pass
 
         if len(word) != 5:
@@ -88,6 +89,8 @@ class WordleGame:
         # let the player know they won
         if word == self.answer:
             self.win = True
+        elif self.turn > 6:
+            self.lose = True
 
         # return latest feedback
         return self.feedbacks[-1]
@@ -157,9 +160,16 @@ class WordleGame:
 
         colors = {0: "⬛", 1: "🟨", 2: "🟩"}
 
-        today = date.today().strftime("%-m/%d")
-        fmt_str = f"\n Wordle 9000 {today}\n"
+        fmt_date = datetime.date.today() - datetime.date(2021, 6, 19)
 
+        fmt_score = "?"
+        if self.turn < 6 and self.win:
+            fmt_score = str(self.turn + 1)
+        elif self.turn >= 6:
+            fmt_score = str(0)
+        fmt_score += "/6"
+
+        fmt_str = f"\n Wordle {datetime.date.today().strftime('%-m/%d')} {fmt_score}\n"
         for f in self.feedbacks:
             numeric_repr = [el[1] for el in f]
             emoji_repr = [colors[a] for a in numeric_repr]
@@ -168,4 +178,4 @@ class WordleGame:
             else:
                 fmt_str += "\n " + "".join([str(x) for x in numeric_repr])
 
-        return fmt_str
+        return fmt_str + "\n"
