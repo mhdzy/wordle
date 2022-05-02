@@ -169,7 +169,7 @@ class WordleGame:
             fmt_score = str(0)
         fmt_score += "/6"
 
-        fmt_str = f"\n Wordle {datetime.date.today().strftime('%-m/%d')} {fmt_score}\n"
+        fmt_str = f"\n Wordle {fmt_date.days} {fmt_score}\n"
         for f in self.feedbacks:
             numeric_repr = [el[1] for el in f]
             emoji_repr = [colors[a] for a in numeric_repr]
