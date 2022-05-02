@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
+
 import argparse
 import sys
 
-import player.AutoPlayer as ap
+import simulation.AutoPlayer as ap
 import player.DailyPlayer as dp
 
 

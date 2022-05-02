@@ -1,4 +1,5 @@
-from statistics import mean
+#!/usr/bin/env python3
+
 import game.PlayGame as pg
 
 

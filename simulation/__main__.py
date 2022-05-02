@@ -1,7 +1,9 @@
-from collections import Counter
+#!/usr/bin/env python3
+
+import collections
 import numpy as np
 
-import player.AutoPlayer as ap
+import simulation.AutoPlayer as ap
 
 max_games: int = 100
 log_rate: float = 0.01
@@ -11,7 +13,7 @@ if __name__ == "__main__":
     guesses = player.autoplay()
 
     # summarised view
-    counted = Counter(guesses)
+    counted = collections.Counter(guesses)
 
     # save out raw list
     np.savetxt(

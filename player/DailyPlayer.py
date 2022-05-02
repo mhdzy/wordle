@@ -1,11 +1,13 @@
-from statistics import mean
+#!/usr/bin/env python3
+
 import game.PlayGame as pg
+
 
 class DailyPlayer:
     def __init__(self, **kwargs: dict) -> None:
         self.game = pg.PlayGame()
         return None
-    
+
     def set(self, answer: str):
         self.game.game.answer = answer
         return self

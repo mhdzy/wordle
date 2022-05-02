@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import itertools
-import collections
 import math
 import multiprocessing
 import random
@@ -12,7 +11,13 @@ import game.WordleGame as wg
 
 class PlayGame:
     """
-    generate a wordle game and allow guesses
+    Create a Wordle game and provide functions to guess, generate suitable
+    guesses, automatically generate a word & guess, or auto-play either a
+    single turn or multiple.
+
+    Wraps the WordleGame class guess function and extends the game with an
+    autosolver. Uses class methods to generate feedback tables, regex filters
+    and keep track of the game state, including all moves & remaining words.
     """
 
     # same master word list shared across all games
@@ -45,17 +50,10 @@ class PlayGame:
         Generates a list of all possible guesses and their associated 'scores',
         as given by E[I(guess)] = sum {fb} (p(fb) * log(1/p(fb))).
         """
-
-        ranges = [i + 1 for i in range(self.max_threads)]
-
-        pool = multiprocessing.Pool(processes=self.max_threads)
-        results = pool.map(self.fb_simulate, ranges)
+        results = self.simulate_mp()
 
         sim_list: list = {k: v for x in results for k, v in x.items()}
-        sim_dict: dict = {s: {k[0]: k[1] for k in sim_list[s]} for s in sim_list}
-
-        # flatten the dict a level
-        sim_dict: list = {k: list(v.values()) for k, v in sim_dict.items()}
+        sim_dict: dict = {k: [v[1] for v in sim_list[k]] for k in sim_list}
 
         # calculate p(x)
         flat_prob = {k: [x / len(sim_dict) for x in v] for k, v in sim_dict.items()}
@@ -68,7 +66,7 @@ class PlayGame:
 
         # multiply p(x) * log(1/p(x))
         exp_values = {
-            k: [round(x * y, 2) for x, y in zip(flat_prob[k], flat_log[k])]
+            k: [x * y for x, y in zip(flat_prob[k], flat_log[k])]
             for k in flat_prob.keys() & flat_log.keys()
         }
 
@@ -119,6 +117,7 @@ class PlayGame:
         state. Chooses the word with the highest likelihood of maximally
         reducing the remaining word list 'score'.
         """
+
         # return the word with the highest score
         return list(self.generateguesses().keys())[-1]
 
@@ -126,6 +125,7 @@ class PlayGame:
         """
         Generates a random guess, chosen from the list of remaining words.
         """
+
         return self.remainder[-1][random.randint(0, len(self.remainder[-1]) - 1)]
 
     def guess(self, word: str = "") -> list:
@@ -161,7 +161,7 @@ class PlayGame:
 
         # guess randomly on the first turn; it takes > 60 mins to run
         guess = (
-            "tares" # chosen from a list of precomputed words with the 'highest' score
+            "tares"  # chosen from a list of precomputed words with the 'highest' score
             # self.randomguess()
             if not self.game.turn or len(self.remainder[-1]) > self.max_remainder
             else self.generateguess()
@@ -170,8 +170,12 @@ class PlayGame:
         return self.guess(guess)
 
     def autoplay(self):
+        """
+        Automatically plays the game until a win or loss occurs.
+        """
         while not self.game.lose and not self.game.win:
             self.autoguess()
+
         return self
 
     def filter(self, fb: list = [], words: list = [], util: bool = False) -> list:
@@ -179,6 +183,7 @@ class PlayGame:
         Trims down the list of remaining valid guesses given a particular
         feedback. Useful for computing arbitrary leftover words for any given
         feedback and word list.
+
         :param fb: Feedback from a guess attempt.
         :param words: A list of words to filter on.
         :param util: A flag to append regex filter & table to class variables.
@@ -188,13 +193,13 @@ class PlayGame:
         # this behavior is useful when legitimately guessing, but not when
         # computing possible outcomes for all remaining valid guesses
         if not util:
-            self.tables.append(self.fb_table(fb))
-            self.regexes.append(self.fb_regex(fb, self.tables[-1]))
+            self.tables.append(self.table(fb))
+            self.regexes.append(self.regex(fb, self.tables[-1]))
             regex = self.regexes[-1]
         else:
-            regex = self.fb_regex(fb, self.fb_table(fb))
+            regex = self.regex(fb, self.table(fb))
 
-        leftover = list(
+        return list(
             itertools.compress(
                 words,
                 list(
@@ -206,11 +211,11 @@ class PlayGame:
                 ),
             )
         )
-        return leftover
 
-    def fb_table(self, fb: list = []) -> dict:
+    def table(self, fb: list = []) -> dict:
         """
         Derives a feedback table including letter count and duplication indications.
+
         :param fb: similarity of guess (accuracy) derived from the guess and answer
         """
         table = {"pos": [], "fb": [], "letter": [], "count": [], "duplicate": []}
@@ -227,23 +232,39 @@ class PlayGame:
 
         return table
 
-    def fb_regex(self, fb: list = [], tbl: dict = {}) -> str:
+    def struct(self, fb: list) -> list:
+        """
+        Finds the letters in the response who belong to each category.
+
+        :param mode: an integer mode representing 'g' (2), 'y' (1), or 'b' (0)
+        :param values: a list of tuples representing (letter, code)
+        """
+
+        def pletters(mode: int) -> list:
+            return list(
+                itertools.compress(
+                    [x[0] for x in fb], list(map(lambda x: x[1] == mode, fb))
+                )
+            )
+
+        return {
+            k[0]: k[1]
+            for k in list(zip(["g", "y", "b"], list(map(pletters, [2, 1, 0]))))
+        }
+
+    def regex(self, fb: list = [], tbl: dict = {}) -> str:
         """
         Derives a regex string to match against valid words who satisfy the
         feedback. Uses the table to quickly determine count/duplication status.
+
         :param fb: results from the game's guess feedback
-        :param tbl: results from self.fb_table()
+        :param tbl: results from self.table()
         """
 
         alphabet = "abcdefghijklmnopqrstuvwxyz"
-        pos_regex = {k: alphabet for k in range(0, self.game.word_length)}
+        regex = {k: alphabet for k in range(0, self.game.word_length)}
 
-        fb_let = [k for (k, _) in fb]
-        fb_let_struct = {
-            "g": self.pos_let(mode=2, values=fb),
-            "y": self.pos_let(mode=1, values=fb),
-            "b": self.pos_let(mode=0, values=fb),
-        }
+        struct = self.struct(fb)
 
         for pos, item in enumerate(fb):
             # lets us pass over the regex string multiple times
@@ -253,21 +274,21 @@ class PlayGame:
 
             # this should be cleaned up...
             if tmp["fb"] == 2:
-                pos_regex[pos] = tmp["letter"]
+                regex[pos] = tmp["letter"]
             elif tmp["fb"] == 1:
-                pos_regex[pos] = pos_regex[pos].replace(tmp["letter"], "")
+                regex[pos] = regex[pos].replace(tmp["letter"], "")
             elif tmp["fb"] == 0:
                 if tmp["duplicate"]:
-                    if tmp["letter"] in fb_let_struct["y"]:
+                    if tmp["letter"] in struct["y"]:
                         # if has yellow duplicate, remove from current position
-                        pos_regex[pos] = pos_regex[pos].replace(tmp["letter"], "")
-                    elif tmp["letter"] in fb_let_struct["g"]:
+                        regex[pos] = regex[pos].replace(tmp["letter"], "")
+                    elif tmp["letter"] in struct["g"]:
                         # elif has green duplicate, remove from all but green duplicate positions
                         # get duplicate green indices of this letter
                         ignore_idx = list(
                             itertools.compress(
                                 list(range(0, len(fb))),
-                                [x == tmp["letter"] for x in fb_let],
+                                [x == tmp["letter"] for x in [k for (k, _) in fb]],
                             )
                         )
                         # construct index of 0-4 excluding green indices
@@ -276,20 +297,20 @@ class PlayGame:
                         ]
                         # remove at those indices
                         for pos2 in remove_idx:
-                            pos_regex[pos2] = pos_regex[pos2].replace(tmp["letter"], "")
+                            regex[pos2] = regex[pos2].replace(tmp["letter"], "")
                 else:
                     # if not duplicated, remove from all positions
                     for i in range(0, self.game.word_length):
-                        pos_regex[i] = pos_regex[i].replace(tmp["letter"], "")
+                        regex[i] = regex[i].replace(tmp["letter"], "")
 
         # core regex unnamed capture group, 0 or 1 times for the elements & set
         # use non-greedy +? quantifier to match each letter (and group) strictly once
-        main = "([" + "][".join(pos_regex.values()) + "])+?"
+        main = "([" + "][".join(regex.values()) + "])+?"
 
         # lookahead group to verify presence of yellow letters
         lookahead_pre = "(?=\w*["
         lookahead_post = "]+\w*)"
-        lookahead_core = fb_let_struct["y"] if (len(fb_let_struct["y"])) else ["\w"]
+        lookahead_core = struct["y"] if (len(struct["y"])) else ["\w"]
         lookahead = list(
             map(
                 lambda x: "{}{}{}".format(lookahead_pre, x, lookahead_post),
@@ -301,8 +322,10 @@ class PlayGame:
 
         return regex
 
-    def fb_combos(self, alphabet=["0", "1", "2"]) -> list:
+    def combos(self, alphabet=["0", "1", "2"]) -> list:
         """
+        Computes the possible combinations given an alphabet.
+
         :return list: A list of valid feedback combinations.
         """
         outputs: list = []
@@ -322,8 +345,10 @@ class PlayGame:
 
         return outputs
 
-    def fb_stitch(self, fb: str, word: str) -> list:
+    def stitch(self, fb: str, word: str) -> list:
         """
+        Stitches together a string of feedback with a word into a list.
+
         :param fb: A string representing N digits of feedback.
         :param word: A word string to stitch together with the feedback.
         """
@@ -332,16 +357,30 @@ class PlayGame:
 
         return [(v, int(k)) for (k, v) in zip(fb, word)]
 
-    def fb_simulate(
+    def simulate(
         self, partition: int = 0, base: int = 10, verbose: bool = True
     ) -> dict:
+        """
+        Runs a simulation for all remaining words, calculating how long the
+        resulting word list given every possible combination of words & feedback.
+
+        :param partition: An integer indicating which partition to compute.
+        :param base: An integer setting the number of partitions.
+        :param verbose: A boolean flag to toggle extra output.
+        """
         # for word w in remaining words:
         #   get all remaining words
         #   get all types of feedback
         #   for tmp_fb in feedbacks:
-        #     fb_stitch(fb, words)
+        #     stitch(fb, words)
         #     filter(fb, words, util = True)
         wordcounts: dict = {}
+
+        if partition > base:
+            print(
+                f"partition {partition} is out of bounds (max {base}), defaulting to partition=0"
+            )
+            partition = 0
 
         enumerable = self.remainder[-1]
         if partition:
@@ -360,13 +399,13 @@ class PlayGame:
                     + ")"
                 )
             wordcounts[item] = []
-            for f in self.fb_combos():
+            for f in self.combos():
                 wordcounts[item].append(
                     [
                         f,
                         len(
                             self.filter(
-                                self.fb_stitch(f, item),
+                                self.stitch(f, item),
                                 self.remainder[-1],
                                 util=True,  # do not modify game variables
                             )
@@ -376,27 +415,14 @@ class PlayGame:
 
         return wordcounts
 
-    def pos_let(self, mode: int, values: list = []) -> list:
+    def simulate_mp(self) -> list:
         """
-        Finds the letters in the response who belong to each category.
-        :param mode: an integer mode representing 'g' (2), 'y' (1), or 'b' (0)
-        :param values: a list of tuples representing (letter, fb_int_code)
+        Parallelizes the class method simulate() by splitting the computation
+        among self.max_threads processes. The resulting list is returned.
         """
-        return list(
-            itertools.compress(
-                [x[0] for x in values], list(map(lambda x: x[1] == mode, values))
-            )
-        )
+        ranges = [i + 1 for i in range(self.max_threads)]
 
-    def pos_idx(self, mode: int, values: list = []) -> list:
-        """
-        Finds the index of the letters (in a base reference word) that correspond
-        to each of the categories.
-        :param mode: an integer mode representing 'g' (2), 'y' (1), or 'b' (0)
-        :param values: a list of tuples representing (letter, fb_int_code)"""
-        return list(
-            itertools.compress(
-                list(range(0, len(values))),
-                list(map(lambda x: x == mode, values)),
-            )
-        )
+        pool = multiprocessing.Pool(processes=self.max_threads)
+        results = pool.map(self.simulate, ranges)
+
+        return results
