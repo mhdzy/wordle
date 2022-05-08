@@ -26,13 +26,15 @@ scoredf <- tibble::tibble(
   score = unlist(scores)
 )
 
-scoredf %>%
+arranged_scores <- scoredf %>%
   arrange(desc(score))
 
-ans <- readr::read_csv("resources/answers.txt", col_names = "word")
+r2 <- sapply(strsplit(arranged_scores$word, ""), anyDuplicated, fixed = TRUE)
 
+arranged_scores[which(r2 == 0), ]
+
+ans <- readr::read_csv("data/answers.txt", col_names = "word")
 ans_scores <- dplyr::left_join(ans, scoredf, by = 'word')
-
 ans_scores %>%
   arrange(desc(score))
 

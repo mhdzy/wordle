@@ -3,13 +3,15 @@
 import collections
 import numpy as np
 
-import simulation.AutoPlayer as ap
+import simulation.Simulator
 
 max_games: int = 100
 log_rate: float = 0.01
 
 if __name__ == "__main__":
-    player = ap.AutoPlayer(**{"max_games": max_games, "log_rate": log_rate})
+    player = simulation.Simulator.Simulator(
+        **{"max_games": max_games, "log_rate": log_rate}
+    )
     guesses = player.autoplay()
 
     # summarised view
@@ -17,7 +19,7 @@ if __name__ == "__main__":
 
     # save out raw list
     np.savetxt(
-        fname="data/simulation-test-new-autoplayer.csv",
+        fname="tests/data/simulation-test-new-simulator.csv",
         X=guesses,
         delimiter=",",
     )

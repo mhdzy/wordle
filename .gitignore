@@ -1,6 +1,8 @@
 # user-generated data
-data/*.json
-data/*.csv
+requirements.txt
+
+tests/data/*.json
+tests/data/*.csv
 
 .DS_Store
 Rplots.pdf

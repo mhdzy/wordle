@@ -4,10 +4,10 @@ import itertools
 import datetime
 import random
 
-import game.LoadWords as lw
+import game.Load
 
 
-class WordleGame:
+class Game:
     """
     generate a wordle game and allow guesses
     """
@@ -24,7 +24,7 @@ class WordleGame:
         self.guesses: list = []
         self.feedbacks: list = []  # list of lists
 
-        with lw.LoadWords() as words:
+        with game.Load.Load() as words:
             self.choices = words.answers + words.words
             self.answers = words.answers
             self.answer = self.answers[random.randrange(0, len(self.answers))]
@@ -32,7 +32,7 @@ class WordleGame:
             return None
 
     def __str__(self) -> str:
-        return f"WordleGame(win: {self.win}, turns: {self.turn}, answer: {self.answer}, guesses: {self.guesses}, feedback: {self.feedbacks})"
+        return f"Game(win: {self.win}, turns: {self.turn}, answer: {self.answer}, guesses: {self.guesses}, feedback: {self.feedbacks})"
 
     def __repr__(self) -> str:
         fmt_str = "\n === Wordle Game === \n"
@@ -164,7 +164,7 @@ class WordleGame:
 
         fmt_score = "?"
         if self.turn < 6 and self.win:
-            fmt_score = str(self.turn + 1)
+            fmt_score = str(self.turn)
         elif self.turn >= 6:
             fmt_score = str(0)
         fmt_score += "/6"

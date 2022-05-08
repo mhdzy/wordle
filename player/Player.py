@@ -6,16 +6,16 @@ import multiprocessing
 import random
 import re
 
-import game.WordleGame as wg
+import game.Game
 
 
-class PlayGame:
+class Player:
     """
     Create a Wordle game and provide functions to guess, generate suitable
     guesses, automatically generate a word & guess, or auto-play either a
     single turn or multiple.
 
-    Wraps the WordleGame class guess function and extends the game with an
+    Wraps the Game class guess function and extends the game with an
     autosolver. Uses class methods to generate feedback tables, regex filters
     and keep track of the game state, including all moves & remaining words.
     """
@@ -24,7 +24,7 @@ class PlayGame:
     choices: list = []
 
     def __init__(self) -> None:
-        self.game = wg.WordleGame()
+        self.game = game.Game.Game()
         self.choices = self.game.choices
         self.remainder: list = [self.game.choices]
         # can compare these against self.game.guesses and self.game.feedbacks
@@ -40,7 +40,7 @@ class PlayGame:
         return None
 
     def __str__(self) -> str:
-        return f"PlayGame(game: {str(self.game)})"
+        return f"Player(game: {str(self.game)})"
 
     def __repr__(self) -> str:
         return self.game.__repr__()
@@ -157,7 +157,7 @@ class PlayGame:
         if not len(self.remainder[-1]):
             raise Exception("game ran out of words to pick")
 
-        print(f"{len(self.remainder[-1])}")
+        # print(f"{len(self.remainder[-1])}")
 
         # guess randomly on the first turn; it takes > 60 mins to run
         guess = (
@@ -358,7 +358,7 @@ class PlayGame:
         return [(v, int(k)) for (k, v) in zip(fb, word)]
 
     def simulate(
-        self, partition: int = 0, base: int = 10, verbose: bool = True
+        self, partition: int = 0, base: int = 10, verbose: bool = False
     ) -> dict:
         """
         Runs a simulation for all remaining words, calculating how long the

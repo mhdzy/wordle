@@ -1,7 +1,7 @@
 library(dplyr)
 library(readr)
 
-results <- "data/test.csv" %>%
+results <- "tests/data/test.csv" %>%
   readr::read_csv(col_names = "score")
 
 summary <- results %>%
@@ -37,15 +37,16 @@ summary2 <- function(tbl) {
 
 # comparing runtimes
 results <- list(
-  "old" = read2("old", "data/test-old-100k.csv"),
-  "new" = read2("new", "data/test-new-100k.csv"),
-  "smt" = read2("smt", "data/test-new-autoplayer.csv")
+  "old" = read2("old", "tests/data/test-old-100k.csv"),
+  "new" = read2("new", "tests/data/test-new-100k.csv")
 )
 
 summary <- dplyr::bind_rows(lapply(results, summary2))
 
 wins <- dplyr::bind_rows(results) %>%
   dplyr::filter(score > 0)
+
+tdata <- wins %>% mutate(id = ifelse(id == "old", 0, 1))
 
 mean(wins$score)
 hist(as.numeric(wins$score), breaks = length(unique(wins$score)))
@@ -60,35 +61,29 @@ wins %>%
   ggplot2::labs(title = "\nWordle Solver before & after\n", x = "\n# of turns\n", y = "\nfrequency\n") +
   ggplot2::theme(plot.title = element_text(hjust = 0.5))
 
-counts <- wins %>%
-  dplyr::group_by(id, score) %>%
-  dplyr::summarise(count = n())
 
-totals <- wins %>%
-  dplyr::group_by(id) %>%
-  dplyr::summarise(total = n())
-
-wins_barchart <-
-  dplyr::left_join(
-    counts,
-    totals,
-    by = 'id'
-  ) %>%
+wins_barchart <- wins %>%
   dplyr::group_by(id, score) %>%
   dplyr::summarise(
-    ratio = count / total,
+    count = n(),
+    ratio = count / (nrow(wins) / length(unique(id))),
     pct = round(ratio * 100, 2),
     pct_str = paste0(pct, "%")
   )
 
-(
 wins_barchart %>%
   ggplot2::ggplot(aes(x = score, y = pct, fill = id)) +
   ggplot2::geom_col(width = 1, position = position_dodge(0.7), alpha = 0.9) +
   ggplot2::labs(
-    title = "\nWordle Solver performance",
+    title = paste0(
+      "\nWordle Solver before & after (games=",
+      prettyNum(
+        formatC(nrow(wins) / length(unique(wins$id)), format = "d"),
+        big.mark = ","
+      ),
+      ")\n"
+    ),
     x = "\n# of turns (n)\n",
     y = "\nfrequency (pct)\n"
   ) +
   ggplot2::theme(plot.title = element_text(hjust = 0.5))
-) %>% plotly::ggplotly()

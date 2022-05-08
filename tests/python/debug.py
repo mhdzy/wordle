@@ -1,7 +1,7 @@
-import game.PlayGame as pg
+import player.Player as pl
 import json
 
-game = pg.PlayGame()
+game = pl.Player()
 
 #game.autoguess()
 sim_list = game.simulate()
@@ -12,9 +12,9 @@ with open("data/first-move-simulation.json", "w") as fd:
 
 
 if False:
-    import game.PlayGame as pg
+    import player.Player as pl
 
-    game = pg.PlayGame()
+    game = pl.Player()
 
     game.game.answer = "oxide"
     game.answer = game.game.answer

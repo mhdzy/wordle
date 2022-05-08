@@ -3,8 +3,7 @@
 import argparse
 import sys
 
-import simulation.AutoPlayer as ap
-import player.DailyPlayer as dp
+import player.AutoPlayer
 
 
 def main(argv):
@@ -17,7 +16,7 @@ def main(argv):
     args = parser.parse_args()
     config = vars(args)
     
-    game = dp.DailyPlayer()
+    game = player.AutoPlayer.AutoPlayer()
     game.set(config.get('answer')).play()
 
     print(repr(game.game))

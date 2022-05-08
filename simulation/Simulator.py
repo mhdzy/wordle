@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import game.PlayGame as pg
+import player.Player
 
 
-class AutoPlayer:
+class Simulator:
 
     def __init__(self, **kwargs: dict) -> None:
         self.max_games = kwargs.get('max_games', 10)
@@ -20,7 +20,7 @@ class AutoPlayer:
                 print(f"playing game {i+1}")
 
             fb = []
-            game = pg.PlayGame()
+            game = player.Player.Player()
             failure = False
 
             while not game.game.win:
