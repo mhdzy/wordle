@@ -6,6 +6,12 @@ class InteractivePlayer:
         self.game = player.Player.Player()
         return None
 
+    def __str__(self) -> str:
+        return f"InteractivePlayer(game: {str(self.game)})"
+
+    def __repr__(self):
+        return repr(self.game)
+    
     def set(self, answer: str):
         self.game.game.answer = answer
         return self
