@@ -3,8 +3,9 @@
 import argparse
 import sys
 
-import player.HumanPlayer
 import player.AutoPlayer
+import player.DailyPlayer
+import player.HumanPlayer
 
 
 def main(argv):
@@ -13,15 +14,22 @@ def main(argv):
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument("-a", "--answer", help="Wordle answer")
-    parser.add_argument("-s", "--sim", help="Run a simulation", action="store_true")
-    parser.add_argument("-u", "--human", help="Manual mode", action="store_true")
+    parser.add_argument("-a", "--answer", help="Set the Wordle answer")
+    parser.add_argument("-d", "--daily", help="Run daily game", action="store_true")
+    parser.add_argument(
+        "-s", "--simulate", help="Run a simulation", action="store_true"
+    )
+    parser.add_argument(
+        "-i", "--interactive", help="Run an interactive game", action="store_true"
+    )
     args = parser.parse_args()
     config = vars(args)
 
-    if config.get("human"):
+    if config.get("daily"):
+        game = player.DailyPlayer.DailyPlayer()
+    elif config.get("human"):
         game = player.HumanPlayer.HumanPlayer()
-    elif config.get("sim"):
+    elif config.get("simulate"):
         game = player.AutoPlayer.AutoPlayer()
     else:
         raise KeyError(
