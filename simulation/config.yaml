@@ -1,0 +1,4 @@
+---
+# simulation configuration variables
+max_games: 100
+log_rate: 0.10
