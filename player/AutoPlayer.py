@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-import time
-import tqdm
-
 import player.Player
 
 
@@ -25,11 +22,8 @@ class AutoPlayer:
         return self
 
     def play(self):
-        # while not self.game.game.win and self.game.game.turn < 6:
-        for _ in tqdm.tqdm(range(6)):
+        while not self.game.game.win and self.game.game.turn < 6:
             self.game.autoguess()
-            if self.game.game.win or self.game.game.lose:
-                break
 
         self.game
 

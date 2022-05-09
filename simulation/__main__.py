@@ -1,21 +1,38 @@
 #!/usr/bin/env python3
 
-import collections
+import argparse
 import numpy as np
+import sys
+import yaml
 
 import simulation.Simulator
 
-max_games: int = 100
-log_rate: float = 0.01
+config_file = "simulation/config.yaml"
 
-if __name__ == "__main__":
+def read_yaml(file):
+    with open(file, "r") as f:
+        return yaml.safe_load(f)
+
+def main(argv):
+    parser = argparse.ArgumentParser(
+        description="daily wordle driver parser",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    parser.add_argument("-n", "--max_games", help="Number of games to simulate")
+    parser.add_argument("-l", "--log_rate", help="Inverse log frequency")
+
+    args = vars(parser.parse_args())
+    dargs = read_yaml(config_file)
+
     player = simulation.Simulator.Simulator(
-        **{"max_games": max_games, "log_rate": log_rate}
+        **{
+            # pull from command-line args first, fallback to config
+            "max_games": int(args.get("max_games", dargs.get("max_games"))),
+            "log_rate": float(args.get("log_rate", dargs.get("log_rate"))),
+        }
     )
     guesses = player.autoplay()
-
-    # summarised view
-    counted = collections.Counter(guesses)
 
     # save out raw list
     np.savetxt(
@@ -23,3 +40,7 @@ if __name__ == "__main__":
         X=guesses,
         delimiter=",",
     )
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
