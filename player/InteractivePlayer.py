@@ -1,7 +1,7 @@
 import player.Player
 
 
-class HumanPlayer:
+class InteractivePlayer:
     def __init__(self) -> None:
         self.game = player.Player.Player()
         return None

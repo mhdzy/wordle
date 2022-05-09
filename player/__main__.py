@@ -5,7 +5,7 @@ import sys
 
 import player.AutoPlayer
 import player.DailyPlayer
-import player.HumanPlayer
+import player.InteractivePlayer
 
 
 def main(argv):
@@ -27,8 +27,8 @@ def main(argv):
 
     if config.get("daily"):
         game = player.DailyPlayer.DailyPlayer()
-    elif config.get("human"):
-        game = player.HumanPlayer.HumanPlayer()
+    elif config.get("interactive"):
+        game = player.InteractivePlayer.InteractivePlayer()
     elif config.get("simulate"):
         game = player.AutoPlayer.AutoPlayer()
     else:
