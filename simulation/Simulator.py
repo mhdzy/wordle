@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import tqdm
+
 import player.Player
 
 
@@ -15,8 +17,8 @@ class Simulator:
         return None
 
     def autoplay(self) -> list:
-        for i in range(0, self.max_games):
-            if not i % (self.max_games * self.log_rate):
+        for i in tqdm.tqdm(range(self.max_games)):
+            if self.log_rate and not i % (self.max_games * self.log_rate):
                 print(f"playing game {i+1}")
 
             fb = []
