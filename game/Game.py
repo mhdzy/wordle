@@ -1,10 +1,13 @@
-from itertools import compress
+#!/usr/bin/env python3
+
+import itertools
+import datetime
 import random
 
-import game.LoadWords as lw
+import game.Load
 
 
-class WordleGame:
+class Game:
     """
     generate a wordle game and allow guesses
     """
@@ -15,12 +18,13 @@ class WordleGame:
 
     def __init__(self) -> None:
         self.win: bool = False
+        self.lose: bool = False
         self.turn: int = 0
         self.answer: str = ""
         self.guesses: list = []
         self.feedbacks: list = []  # list of lists
 
-        with lw.LoadWords() as words:
+        with game.Load.Load() as words:
             self.choices = words.answers + words.words
             self.answers = words.answers
             self.answer = self.answers[random.randrange(0, len(self.answers))]
@@ -28,11 +32,10 @@ class WordleGame:
             return None
 
     def __str__(self) -> str:
-        return f"WordleGame(win: {self.win}, turns: {self.turn}, answer: {self.answer}, guesses: {self.guesses}, feedback: {self.feedbacks})"
+        return f"Game(win: {self.win}, turns: {self.turn}, answer: {self.answer}, guesses: {self.guesses}, feedback: {self.feedbacks})"
 
     def __repr__(self) -> str:
-        fmt_str = "\n"
-        fmt_str += " === Wordle Game === \n"
+        fmt_str = "\n === Wordle Game === \n"
 
         fmt_str += (
             " [ ] game won\n"
@@ -51,6 +54,8 @@ class WordleGame:
 
         fmt_str += " === === === === === \n"
 
+        fmt_str += self.show_feedback()
+
         return fmt_str
 
     def guess(self, word: str = ""):
@@ -67,7 +72,7 @@ class WordleGame:
         if self.win:
             raise RuntimeError(f"The game has been won in {len(self.guesses)} guesses.")
         elif self.turn > 5:
-            # raise RuntimeError(f"The maximum number of guesses has been played.")
+            raise RuntimeError(f"The maximum number of guesses has been played.")
             pass
 
         if len(word) != 5:
@@ -84,6 +89,8 @@ class WordleGame:
         # let the player know they won
         if word == self.answer:
             self.win = True
+        elif self.turn > 6:
+            self.lose = True
 
         # return latest feedback
         return self.feedbacks[-1]
@@ -100,7 +107,7 @@ class WordleGame:
 
     def calculate_feedback(self, answer: str = "", word: str = "") -> dict:
         """
-        Given a word, calculate the
+        Given a word, calculate the feedback.
         :param word: A 5 letter word guess to compare against the game answer.
         """
         if len(word) != 5:
@@ -123,10 +130,10 @@ class WordleGame:
 
         # grab all matches as 'green'
         fb_green = [answer[k] == word[k] for k in range(len(answer))]
-        green_idx = list(compress(list(range(0, len(answer))), fb_green))
+        green_idx = list(itertools.compress(list(range(0, len(answer))), fb_green))
 
         # update letterpool by removing green letters
-        lp = list(compress(lp, [not i for i in fb_green]))
+        lp = list(itertools.compress(lp, [not i for i in fb_green]))
 
         # iterate over leftover words to determine
         for i in enumerate(word):
@@ -144,3 +151,31 @@ class WordleGame:
         feedback = self.apply_feedback(feedback, fb_black, 0)
 
         return feedback
+
+    def show_feedback(self, color: bool = True):
+        """
+        Shows feedback in 'color' mode using black/yellow/green emoji squares.
+        :param color: A bool, when True displays emoji squares, when False uses integers.
+        """
+
+        colors = {0: "⬛", 1: "🟨", 2: "🟩"}
+
+        fmt_date = datetime.date.today() - datetime.date(2021, 6, 19)
+
+        fmt_score = "?"
+        if self.turn < 6 and self.win:
+            fmt_score = str(self.turn)
+        elif self.turn >= 6:
+            fmt_score = str(0)
+        fmt_score += "/6"
+
+        fmt_str = f"\n Wordle {fmt_date.days} {fmt_score}\n"
+        for f in self.feedbacks:
+            numeric_repr = [el[1] for el in f]
+            emoji_repr = [colors[a] for a in numeric_repr]
+            if color:
+                fmt_str += "\n " + "".join(emoji_repr)
+            else:
+                fmt_str += "\n " + "".join([str(x) for x in numeric_repr])
+
+        return fmt_str + "\n"

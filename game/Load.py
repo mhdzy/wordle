@@ -1,13 +1,22 @@
-class LoadWords():
+#!/usr/bin/env python3
+
+class Load():
+
+  word_path = 'data/words.txt'
+  answer_path = 'data/answers.txt'
+
   words: list = []
   answers: list = []
 
   def __init__(self) -> None:
     if not len(self.words):
-      self.words = self.fread('resources/words.txt')
+      self.words = self.fread(self.word_path)
+      self.words.sort()
     
     if not len(self.answers):
-      self.answers = self.fread('resources/answers.txt')
+      self.answers = self.fread(self.answer_path)
+      self.answers.sort()
+      
     return None
   
   def __enter__(self):

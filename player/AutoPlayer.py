@@ -1,40 +1,34 @@
-import game.PlayGame as pg
+#!/usr/bin/env python3
+
+import player.Player
 
 
 class AutoPlayer:
 
-    def __init__(self) -> None:
-        self.MAX_GAMES = 10
-        self.LOG_RATE = 0.10
-        self.games: list = []
-        self.scores: list = []
-        print(f"Games to Play: {self.MAX_GAMES}")
-        print(f"Logging Rate: {self.LOG_RATE}")
+    def __init__(self, **kwargs: dict) -> None:
+        self.game = player.Player.Player()
         return None
+    
+    def __repr__(self):
+        print(repr(self.game))
+        return print(repr(self.game))
 
-    def autoplay(self) -> list:
-        for i in range(0, self.MAX_GAMES):
-            if not i % (self.MAX_GAMES * self.LOG_RATE):
-                print(f"playing game {i}")
+    def __str__(self) -> str:
+        print(str(self.game))
+        return str(self.game)
 
-            fb = []
-            game = pg.PlayGame()
-            failure = False
+    def set(self, answer: str):
+        self.game.game.answer = answer
+        return self
 
-            while not game.game.win:
-                try:
-                    fb.append(game.autoguess())
-                    #game.fb_parse()
-                except Exception as e:
-                    # when the candidate list is empty, an err is thrown
-                    game.game.win = True
-                    failure = True
+    def play(self):
+        while not self.game.game.win and self.game.game.turn < 6:
+            self.game.autoguess()
 
-            if failure:
-                self.scores.append(-1)
-            else:
-                self.scores.append(len(game.guesses))
+        self.game
 
-            self.games.append(game)
+        return self
 
-        return self.scores
+    def reset(self):
+        self.game = player.Player.Player()
+        return self
