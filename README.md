@@ -28,7 +28,7 @@ $ python3 -m player -i -a snake
 To autoplay the game using an autosolver, run:
 
 ```sh
-$ python -m player -s
+$ python3 -m player -s
 ```
 
 This will run a game of Wordle and attempt to solve it using the internal algorithm. It can be quite slow when running on games with a large remainder of potential solutions.
@@ -36,14 +36,14 @@ This will run a game of Wordle and attempt to solve it using the internal algori
 Specifying an answer to the autosolver is the same as with manual play, using the `-a` flag:
 
 ```sh
-$ python -m player -s -a midst
+$ python3 -m player -s -a midst
 ```
 
 ## Daily Play
 To run the day's particular Wordle game automatically, run:
 
 ```sh
-$ python -m player -d
+$ python3 -m player -d
 ```
 
 ## Simulate
