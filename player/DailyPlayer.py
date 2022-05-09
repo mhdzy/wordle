@@ -17,6 +17,12 @@ class DailyPlayer:
 
         return None
 
+    def __str__(self) -> str:
+        return f"DailyPlayer(game: {str(self.game)}, answer: {str(self.game.game.answer)})"
+
+    def __repr__(self):
+        return repr(self.game)
+
     def get_answer(self, num: int = 0) -> str:
         page = requests.get(self.url)
         soup = BeautifulSoup(page.content, "html.parser")
@@ -58,7 +64,10 @@ class DailyPlayer:
         # return answers[0]
         return answer
 
+    def set(self, answer: str):
+        self.game.game.answer = answer
+        return self
+
     def play(self):
         self.game.autoplay()
-
         return self

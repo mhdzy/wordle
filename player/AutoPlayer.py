@@ -9,13 +9,11 @@ class AutoPlayer:
         self.game = player.Player.Player()
         return None
     
-    def __repr__(self):
-        print(repr(self.game))
-        return print(repr(self.game))
-
     def __str__(self) -> str:
-        print(str(self.game))
-        return str(self.game)
+        return f"AutoPlayer(game: {str(self.game)})"
+
+    def __repr__(self):
+        return repr(self.game)
 
     def set(self, answer: str):
         self.game.game.answer = answer
