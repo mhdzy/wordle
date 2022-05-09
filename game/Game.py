@@ -47,14 +47,14 @@ class Game:
         for idx in range(0, len(self.feedbacks)):
             fb = self.feedbacks[idx]
 
-            fmt_str += " " + f"Turn {idx}"
+            fmt_str += " " + f"Turn {idx + 1}"
             fmt_str += " " + "".join([str(x[0]) for x in fb])
             fmt_str += " " + "".join([str(x[1]) for x in fb])
             fmt_str += "\n"
 
-        fmt_str += " === === === === === \n"
+        fmt_str += " === === === === === \n\n"
 
-        fmt_str += self.show_feedback()
+        fmt_str += self.show_feedback() + "\n"
 
         return fmt_str
 
@@ -169,13 +169,13 @@ class Game:
             fmt_score = str(0)
         fmt_score += "/6"
 
-        fmt_str = f"\n Wordle {fmt_date.days} {fmt_score}\n"
+        fmt_str = f"Wordle {fmt_date.days} {fmt_score}\n"
         for f in self.feedbacks:
             numeric_repr = [el[1] for el in f]
             emoji_repr = [colors[a] for a in numeric_repr]
             if color:
-                fmt_str += "\n " + "".join(emoji_repr)
+                fmt_str += "\n" + "".join(emoji_repr)
             else:
-                fmt_str += "\n " + "".join([str(x) for x in numeric_repr])
+                fmt_str += "\n" + "".join([str(x) for x in numeric_repr])
 
-        return fmt_str + "\n"
+        return fmt_str

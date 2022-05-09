@@ -64,7 +64,10 @@ class DailyPlayer:
         # return answers[0]
         return answer
 
+    def set(self, answer: str):
+        self.game.game.answer = answer
+        return self
+
     def play(self):
         self.game.autoplay()
-
         return self
