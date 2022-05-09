@@ -15,15 +15,13 @@ $ git clone git@github.com:mhdzy/wordle.git
 Play Wordle interactively with:
 
 ```sh
-$ python3 -m player -u
+$ python3 -m player -i
 ```
 
-
-
-Initialize a `game` with a specific answer with:
+Initialize a game with a specific answer with:
 
 ```sh
-$ python3 -m player -u -a snake
+$ python3 -m player -i -a snake
 ```
 
 ## Autoplay
@@ -39,6 +37,13 @@ Specifying an answer to the autosolver is the same as with manual play, using th
 
 ```sh
 $ python -m player -s -a midst
+```
+
+## Daily Play
+To run the day's particular Wordle game automatically, run:
+
+```sh
+$ python -m player -d
 ```
 
 ## Simulate
