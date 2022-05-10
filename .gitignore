@@ -1,4 +1,6 @@
 # user-generated data
+data/*.pkl
+
 requirements.txt
 
 tests/data/*.json
