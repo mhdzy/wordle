@@ -43,7 +43,7 @@ class Player:
         return f"Player(game: {str(self.game)})"
 
     def __repr__(self) -> str:
-        return self.game.__repr__()
+        return repr(self.game)
 
     def generateguesses(self) -> str:
         """
