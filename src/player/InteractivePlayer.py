@@ -1,9 +1,11 @@
-import player.Player
+#!/usr/bin/env python3
+
+import src.player.Player as Player
 
 
 class InteractivePlayer:
     def __init__(self) -> None:
-        self.game = player.Player.Player()
+        self.game = Player.Player()
         return None
 
     def __str__(self) -> str:

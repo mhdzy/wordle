@@ -4,7 +4,7 @@ import itertools
 import datetime
 import random
 
-import game.Load
+import src.game.Load as Load
 
 
 class Game:
@@ -17,17 +17,17 @@ class Game:
     guess_limit: int = 6
 
     def __init__(self) -> None:
+        self.turn: int = 0
         self.win: bool = False
         self.lose: bool = False
-        self.turn: int = 0
         self.answer: str = ""
         self.guesses: list = []
         self.feedbacks: list = []  # list of lists
 
-        with game.Load.Load() as words:
-            self.choices = words.answers + words.words
-            self.answers = words.answers
-            self.answer = self.answers[random.randrange(0, len(self.answers))]
+        with Load.Load() as words:
+            self.choices: list = words.answers + words.words
+            self.answers: list = words.answers
+            self.answer: str = self.answers[random.randrange(0, len(self.answers))]
 
             return None
 
@@ -35,7 +35,7 @@ class Game:
         return f"Game(win: {self.win}, turns: {self.turn}, answer: {self.answer}, guesses: {self.guesses}, feedback: {self.feedbacks})"
 
     def __repr__(self) -> str:
-        fmt_str = "\n === Wordle Game === \n"
+        fmt_str: str = "\n === Wordle Game === \n"
 
         fmt_str += (
             " [ ] game won\n"
@@ -45,7 +45,7 @@ class Game:
         fmt_str += "\n"
 
         for idx in range(0, len(self.feedbacks)):
-            fb = self.feedbacks[idx]
+            fb: list = self.feedbacks[idx]
 
             fmt_str += " " + f"Turn {idx + 1}"
             fmt_str += " " + "".join([str(x[0]) for x in fb])
@@ -65,18 +65,17 @@ class Game:
         and appends the feedback to the feedback list. Returns the latest
         feedback.
 
-        :param word: A 5 letter word guess.
+        :param word: A self.word_length letter word guess.
         :return: Feedback on the guess.
         """
 
         if self.win:
             raise RuntimeError(f"The game has been won in {len(self.guesses)} guesses.")
-        elif self.turn > 5:
-            raise RuntimeError(f"The maximum number of guesses has been played.")
-            pass
+        #elif self.turn >= self.guess_limit:
+            #raise RuntimeError(f"The maximum number of guesses has been played.")
 
-        if len(word) != 5:
-            raise IndexError(f"Guess '{word}' does not have length 5.")
+        if len(word) != self.word_length:
+            raise IndexError(f"Guess '{word}' does not have length {self.word_length}.")
 
         if word not in self.choices:
             raise KeyError(f"Guess '{word}' was not found in the dictionary.")
@@ -89,8 +88,8 @@ class Game:
         # let the player know they won
         if word == self.answer:
             self.win = True
-        elif self.turn > 6:
-            self.lose = True
+        #elif self.turn >= self.guess_limit:
+            #self.lose = True
 
         # return latest feedback
         return self.feedbacks[-1]
@@ -108,13 +107,10 @@ class Game:
     def calculate_feedback(self, answer: str = "", word: str = "") -> dict:
         """
         Given a word, calculate the feedback.
-        :param word: A 5 letter word guess to compare against the game answer.
+        :param word: A self.word_length letter word guess to compare against the game answer.
         """
-        if len(word) != 5:
-            raise IndexError(f"Guess '{word}' does not have length 5.")
-
-        # 'letterpool', keeps track of remaining 'valid' letters to score
-        lp: list = list(answer)
+        if len(word) != self.word_length:
+            raise IndexError(f"Guess '{word}' does not have length {self.word_length}.")
 
         # tokenize the inputs to indexable components
         word: list = list(word)
@@ -123,25 +119,27 @@ class Game:
         # enum { 'g': 2, 'y': 1, 'b': 0 }
         feedback: list = list(zip(word, [0] * len(word)))
 
-        # setup empty structs to hold positions of each
-        fb_green = [False] * len(word)
-        fb_yellow = [False] * len(word)
-        fb_black = [False] * len(word)
+        fb_green: list = [False] * len(word)
+        fb_yellow: list = [False] * len(word)
+        fb_black: list = [False] * len(word)
 
         # grab all matches as 'green'
-        fb_green = [answer[k] == word[k] for k in range(len(answer))]
-        green_idx = list(itertools.compress(list(range(0, len(answer))), fb_green))
+        fb_green: list = [answer[k] == word[k] for k in range(len(answer))]
+        green_idx: list = list(
+            itertools.compress(list(range(0, len(answer))), fb_green)
+        )
 
-        # update letterpool by removing green letters
-        lp = list(itertools.compress(lp, [not i for i in fb_green]))
+        # keeps track of remaining 'valid' letters to score
+        letterpool: list = list(
+            itertools.compress(list(answer), [not i for i in fb_green])
+        )
 
-        # iterate over leftover words to determine
-        for i in enumerate(word):
-            (idx, letter) = i
+        # mark yellow/black letters
+        for (idx, letter) in enumerate(word):
             if idx in green_idx:
                 pass
-            elif letter in lp:
-                lp.remove(letter)
+            elif letter in letterpool:
+                letterpool.remove(letter)
                 fb_yellow[idx] = True
             else:
                 fb_black[idx] = True
@@ -158,18 +156,18 @@ class Game:
         :param color: A bool, when True displays emoji squares, when False uses integers.
         """
 
-        colors = {0: "⬛", 1: "🟨", 2: "🟩"}
+        colors: dict = {0: "⬛", 1: "🟨", 2: "🟩"}
 
         fmt_date = datetime.date.today() - datetime.date(2021, 6, 19)
 
-        fmt_score = "?"
-        if self.turn < 6 and self.win:
+        fmt_score: str = "?"
+        if self.turn < self.guess_limit and self.win:
             fmt_score = str(self.turn)
-        elif self.turn >= 6:
+        elif self.turn >= self.guess_limit:
             fmt_score = str(0)
-        fmt_score += "/6"
+        fmt_score += ("/" + str(self.guess_limit))
 
-        fmt_str = f"Wordle {fmt_date.days} {fmt_score}\n"
+        fmt_str: str = f"Wordle {fmt_date.days} {fmt_score}\n"
         for f in self.feedbacks:
             numeric_repr = [el[1] for el in f]
             emoji_repr = [colors[a] for a in numeric_repr]

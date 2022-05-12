@@ -5,14 +5,14 @@ import datetime
 import re
 import requests
 
-import player.Player
+import src.player.Player as Player
 
 class DailyPlayer:
 
     url = "https://www.wmlcloud.com/games/what-is-todays-wordle-answer/"
 
     def __init__(self) -> None:
-        self.game = player.Player.Player()
+        self.game = Player.Player()
         self.game.game.answer = self.get_answer()
 
         return None
@@ -60,6 +60,10 @@ class DailyPlayer:
         ).split()
 
         answer = re.findall(r"(?<=<strong>)[\w]{5}", str(futurelist))[0].lower()
+
+        # sometimes this is broken
+        if answer == 'wordl':
+            answer = re.findall(re_str, str(futurelist))[0].lower()
 
         # return answers[0]
         return answer

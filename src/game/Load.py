@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 class Load():
-
-  word_path = 'data/words.txt'
-  answer_path = 'data/answers.txt'
+  word_path: str = 'data/words.txt'
+  answer_path: str = 'data/answers.txt'
 
   words: list = []
   answers: list = []

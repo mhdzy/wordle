@@ -1,5 +1,6 @@
 # user-generated data
-requirements.txt
+data/*.pkl
+data/*.json
 
 tests/data/*.json
 tests/data/*.csv
