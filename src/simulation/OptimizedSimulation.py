@@ -46,7 +46,7 @@ class OptimizedSimulation:
 
     def autoguess(self):
         if self.plr.game.turn == 0:
-                guess = "tares"
+            guess = "tares"
         else:
             guesses = {word: self.gscore(word) for word in list(self.tmpdf.index)}
             guess = max(guesses.items(), key=operator.itemgetter(1))[0]

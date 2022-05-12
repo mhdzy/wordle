@@ -67,7 +67,7 @@ def main(argv):
         output_path += f"simulation-{ngames}.csv"
 
     if args.get("multithread"):
-        logger.debug("multithreading is using {max_threads} threads")
+        logger.debug(f"multithreading is using {max_threads} threads")
         pool = multiprocessing.Pool(processes=max_threads)
         result = pool.map(sim.simulate, mpgames)
     else:
