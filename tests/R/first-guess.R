@@ -31,7 +31,7 @@ arranged_scores <- scoredf %>%
 
 r2 <- sapply(strsplit(arranged_scores$word, ""), anyDuplicated, fixed = TRUE)
 
-arranged_scores[which(r2 == 0), ]
+nonduplicated <- arranged_scores[which(r2 == 0), ]
 
 ans <- readr::read_csv("data/answers.txt", col_names = "word")
 ans_scores <- dplyr::left_join(ans, scoredf, by = 'word')
