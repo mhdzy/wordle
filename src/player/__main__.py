@@ -3,15 +3,15 @@
 import argparse
 import sys
 
-import message.Message
-import player.AutoPlayer
-import player.DailyPlayer
-import player.InteractivePlayer
+import src.message.Message as Message
+import src.player.AutoPlayer as AutoPlayer
+import src.player.DailyPlayer as DailyPlayer
+import src.player.InteractivePlayer as InteractivePlayer
 
 
 def main(argv):
     parser = argparse.ArgumentParser(
-        description="daily wordle driver parser",
+        description="Wordle Player parser",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
@@ -40,14 +40,14 @@ def main(argv):
     config = vars(args)
 
     if config.get("daily"): 
-        game = player.DailyPlayer.DailyPlayer()
+        game = DailyPlayer.DailyPlayer()
         # if user also chose interactive, this will setup the target game obj
         config.update({'answer': game.game.game.answer})
     
     if config.get("interactive"):
-        game = player.InteractivePlayer.InteractivePlayer()
+        game = InteractivePlayer.InteractivePlayer()
     elif config.get("simulate"):
-        game = player.AutoPlayer.AutoPlayer()
+        game = AutoPlayer.AutoPlayer()
 
     if config.get("answer", None) is not None:
         game.set(config.get("answer"))
@@ -55,7 +55,7 @@ def main(argv):
     game.play()
 
     def msg_wrapper(game, mode, config):
-        messager = message.Message.Message(mode=mode)
+        messager = Message.Message(mode=mode)
         messager.send_message(
             phone_number=config.get("phone_number"),
             message=game.game.game.show_feedback(),

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import player.Player
+import src.player.Player as Player
 
 
 class AutoPlayer:
 
     def __init__(self, **kwargs: dict) -> None:
-        self.game = player.Player.Player()
+        self.game = Player.Player()
         return None
     
     def __str__(self) -> str:
@@ -28,5 +28,5 @@ class AutoPlayer:
         return self
 
     def reset(self):
-        self.game = player.Player.Player()
+        self.game = Player.Player()
         return self

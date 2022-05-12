@@ -6,7 +6,7 @@ import multiprocessing
 import random
 import re
 
-import game.Game
+import src.game.Game as Game
 
 
 class Player:
@@ -24,7 +24,7 @@ class Player:
     choices: list = []
 
     def __init__(self) -> None:
-        self.game = game.Game.Game()
+        self.game = Game.Game()
         self.choices = self.game.choices
         self.remainder: list = [self.game.choices]
         # can compare these against self.game.guesses and self.game.feedbacks

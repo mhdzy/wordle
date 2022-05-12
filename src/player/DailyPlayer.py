@@ -5,14 +5,14 @@ import datetime
 import re
 import requests
 
-import player.Player
+import src.player.Player as Player
 
 class DailyPlayer:
 
     url = "https://www.wmlcloud.com/games/what-is-todays-wordle-answer/"
 
     def __init__(self) -> None:
-        self.game = player.Player.Player()
+        self.game = Player.Player()
         self.game.game.answer = self.get_answer()
 
         return None
