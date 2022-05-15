@@ -7,33 +7,36 @@ import requests
 
 import src.player.Player as Player
 
+
 class DailyPlayer:
 
     url = "https://www.wmlcloud.com/games/what-is-todays-wordle-answer/"
 
-    def __init__(self) -> None:
+    def __init__(self, rewind: int = 0) -> None:
         self.game = Player.Player()
-        self.game.game.answer = self.get_answer()
+        self.game.game.answer = self.get_answer(rewind)
 
         return None
 
     def __str__(self) -> str:
-        return f"DailyPlayer(game: {str(self.game)}, answer: {str(self.game.game.answer)})"
+        return (
+            f"DailyPlayer(game: {str(self.game)}, answer: {str(self.game.game.answer)})"
+        )
 
     def __repr__(self):
         return repr(self.game)
 
-    def get_answer(self, num: int = 0) -> str:
+    def get_answers(self) -> list:
         page = requests.get(self.url)
         soup = BeautifulSoup(page.content, "html.parser")
 
         futurelist = soup.select("ul li strong")[-1]
         answerlist = soup.select("article ul li")
 
-        # if date is two digits, we need to quantify the second [0-9] regex
-        # with a {2}. otherwise we should use {1}
-        re_date_rep = str(len(str(datetime.date.today().day)))
-        re_month_rep = str(
+        # regex lookahead requires fixed-length expression, so we need to
+        # handle variable length date digits and var-length month strings
+        re_date = str(len(str(datetime.date.today().day)))
+        re_month = str(
             len(
                 datetime.datetime.strptime(
                     str(datetime.date.today().month), "%m"
@@ -43,9 +46,9 @@ class DailyPlayer:
 
         re_str = (
             r"(?<=Wordle No\. [0-9]{3} \([\w]{"
-            + rf"{re_month_rep}"
+            + rf"{re_month}"
             + r"} [0-9]{"
-            + rf"{re_date_rep}"
+            + rf"{re_date}"
             + r"}\): )"
             + r"([\w]{5}){1}"
         )
@@ -59,14 +62,17 @@ class DailyPlayer:
             ]
         ).split()
 
-        answer = re.findall(r"(?<=<strong>)[\w]{5}", str(futurelist))[0].lower()
-
         # sometimes this is broken
-        if answer == 'wordl':
+        answer = re.findall(r"(?<=<strong>)[\w]{5}", str(futurelist))[0].lower()
+        if answer == "wordl":
             answer = re.findall(re_str, str(futurelist))[0].lower()
 
-        # return answers[0]
-        return answer
+        answers.insert(0, answer)
+
+        return answers
+
+    def get_answer(self, num: int = 0) -> str:
+        return self.get_answers()[num]
 
     def set(self, answer: str):
         self.game.game.answer = answer

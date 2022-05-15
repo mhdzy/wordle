@@ -17,6 +17,7 @@ def main(argv):
 
     parser.add_argument("-a", "--answer", help="Set the Wordle answer")
     parser.add_argument("-d", "--daily", help="Run daily game", action="store_true")
+    parser.add_argument("-r", "--rewind", help="Rewind player to a game r days ago")
     parser.add_argument(
         "-i", "--interactive", help="Run an interactive game", action="store_true"
     )
@@ -31,19 +32,20 @@ def main(argv):
         action="store_true",
     )
     parser.add_argument(
-        "-p",
-        "--phone-number",
-        help="A valid iPhone phone number or Group name"
+        "-p", "--phone-number", help="A valid iPhone phone number or Group name"
     )
 
     args = parser.parse_args()
     config = vars(args)
 
-    if config.get("daily"): 
-        game = DailyPlayer.DailyPlayer()
-        # if user also chose interactive, this will setup the target game obj
-        config.update({'answer': game.game.game.answer})
-    
+    if config.get("daily"):
+        idx = int(config.get("rewind"))
+        
+        # index 0 is usually tomorrow's wordle
+        game = DailyPlayer.DailyPlayer(idx if idx is not None else 1)
+        # if user also chose interactive, this will correctly set the answer
+        config.update({"answer": game.game.game.answer})
+
     if config.get("interactive"):
         game = InteractivePlayer.InteractivePlayer()
     elif config.get("simulate"):
