@@ -11,6 +11,8 @@ import src.player.Player as Player
 class DailyPlayer:
 
     url = "https://www.wmlcloud.com/games/what-is-todays-wordle-answer/"
+    alt_url = "https://www.nme.com/guides/gaming-guides/heres-the-wordle-answer-for-today-3171240"
+    alt2_url = "https://gdcbemina.com/nytimes-wordle-answer-today-june-12-2022-check-358-solution-and-hints/"
 
     def __init__(self, rewind: int = 0) -> None:
         self.game = Player.Player()
