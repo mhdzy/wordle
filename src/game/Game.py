@@ -161,9 +161,9 @@ class Game:
         fmt_date = datetime.date.today() - datetime.date(2021, 6, 19)
 
         fmt_score: str = "?"
-        if self.turn < self.guess_limit and self.win:
+        if self.turn <= self.guess_limit and self.win:
             fmt_score = str(self.turn)
-        elif self.turn >= self.guess_limit:
+        elif self.turn > self.guess_limit:
             fmt_score = str(0)
         fmt_score += ("/" + str(self.guess_limit))
 

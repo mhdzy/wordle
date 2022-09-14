@@ -14,6 +14,19 @@ $ git clone git@github.com:mhdzy/wordle.git
 
 ## Play
 
+### Autoplay (`-s`)
+To autoplay the game using the solver, run:
+
+```sh
+$ python3 -m src.player -s
+```
+
+Specifying an answer to the autosolver is the same as with interactive mode, using the `-a` flag:
+
+```sh
+$ python3 -m src.player -s -a snake
+```
+
 ### Interactive Mode (`-i`)
 
 Play Wordle interactively with:
@@ -28,31 +41,29 @@ Initialize a game with a specific answer with:
 $ python3 -m src.player -i -a snake
 ```
 
-### Autoplay (`-s`)
-To autoplay the game using an autosolver, run:
-
-```sh
-$ python3 -m src.player -s
-```
-
-Specifying an answer to the autosolver is the same as with interactive mode, using the `-a` flag:
-
-```sh
-$ python3 -m src.player -s -a snake
-```
+**note:** the `-i` option overrides `-s`
 
 ### Daily Play (`-d`)
-To solve the day's particular Wordle game automatically, run:
+To solve the day's particular Wordle game automatically (the `-s` flag is implied), run:
 
 ```sh
 $ python3 -m src.player -d
 ```
+
+To re-run a previous day's Wordle game, specify the number of days to rewind with `-d -r`. The daily Wordle is usually at index 1, tomorrow's Wordle at index 0, and prior days' games indices start at 2. For example, to play yesterday's Wordle:
+```sh
+$ python3 -m src.player -d -r 2
+```
+
+**note:** the `-r` option overrides `-a`
 
 To play the daily Wordle in interactive mode, run:
 
 ```sh
 $ python3 -m src.player -d -i
 ```
+
+**note:** the `-i` option softly overrides `-d` automation by using the day's answer in an interactive game
 
 ## Simluation
 The `simulation` module allows for running a large number of Wordle games to measure the performance of the autosolving algorithm. Scores are exported and processed in R.
